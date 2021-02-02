@@ -20,7 +20,7 @@ async def get_db() -> sqlalchemy.engine.base.Connection:
     Otherwise uses a SQLite database for initial local development.
     """
     load_dotenv()
-    database_url = os.getenv('DEVELOPMENT_DATABASE_URL', default='sqlite:///temporary.db')
+    database_url = os.getenv('PRODUCTION_DATABASE_URL', default='sqlite:///temporary.db')
     engine = sqlalchemy.create_engine(database_url)
     connection = engine.connect()
     try:
@@ -49,7 +49,7 @@ async def city_list():
     returns city_name and state_name
     '''
     load_dotenv()
-    database_url = os.getenv('DEVELOPMENT_DATABASE_URL')
+    database_url = os.getenv('PRODUCTION_DATABASE_URL')
     query = '''SELECT Cities.city_name, STATES.state_name
                 FROM CITIES
                 LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
@@ -69,7 +69,7 @@ async def state_list():
     returns state_name and state_abbreviation
     '''
     load_dotenv()
-    database_url = os.getenv('DEVELOPMENT_DATABASE_URL')
+    database_url = os.getenv('PRODUCTION_DATABASE_URL')
     query = '''SELECT state_name, state_abbreviation
                 FROM STATES
             '''
@@ -90,7 +90,7 @@ async def location(locationquery: LocationQuery):
     city_name = locationquery.city_name
     state_name = locationquery.state_name
     load_dotenv()
-    database_url = os.getenv('DEVELOPMENT_DATABASE_URL')
+    database_url = os.getenv('PRODUCTION_DATABASE_URL')
     engine = sqlalchemy.create_engine(database_url)
     if city_name == '':
         query = f'''
@@ -122,4 +122,3 @@ async def location(locationquery: LocationQuery):
         'longitude': f'{each[3]}'})
     to_return = json.dumps(location_list)
     return to_return
-
