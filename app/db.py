@@ -5,8 +5,7 @@ import os
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends
 import sqlalchemy
-from pydantic import BaseModel
-from sqlalchemy.orm import sessionmaker
+import json
 
 router = APIRouter()
 
@@ -47,5 +46,17 @@ async def city_list():
     '''
     Returns a list of all cities that are in the database
     '''
-    city_list = [{'city_name':'Atlanta','state_name':'Georgia'}, {'city_name':'New York','state_name':'New York'}]
-    return city_list
+    load_dotenv()
+    database_url = os.getenv('DEVELOPMENT_DATABASE_URL')
+    query = '''SELECT Cities.city_name, STATES.state_name
+                FROM CITIES
+                LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
+            '''
+    engine = sqlalchemy.create_engine(database_url)
+    cities = engine.execute(query)
+    city_list = []
+    for each in cities:
+        city_list.append({'city_name':f'{each[0].strip()}', 'state_name':f'{each[1].strip()}'})
+    to_return = json.dumps(city_list)
+    return to_return
+
