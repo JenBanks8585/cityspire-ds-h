@@ -5,6 +5,8 @@ import os
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends
 import sqlalchemy
+from pydantic import BaseModel
+from sqlalchemy.orm import sessionmaker
 
 router = APIRouter()
 
@@ -18,7 +20,7 @@ async def get_db() -> sqlalchemy.engine.base.Connection:
     Otherwise uses a SQLite database for initial local development.
     """
     load_dotenv()
-    database_url = os.getenv('PRODUCTION_DATABASE_URL', default='sqlite:///temporary.db')
+    database_url = os.getenv('DEVELOPMENT_DATABASE_URL', default='sqlite:///temporary.db')
     engine = sqlalchemy.create_engine(database_url)
     connection = engine.connect()
     try:
@@ -38,3 +40,12 @@ async def get_url(connection=Depends(get_db)):
     """
     url_without_password = repr(connection.engine.url)
     return {'database_url': url_without_password}
+
+
+@router.get('/city_list')
+async def city_list():
+    '''
+    Returns a list of all cities that are in the database
+    '''
+    city_list = [{'city_name':'Atlanta','state_name':'Georgia'}, {'city_name':'New York','state_name':'New York'}]
+    return city_list
