@@ -92,7 +92,13 @@ async def location(locationquery: LocationQuery):
     load_dotenv()
     database_url = os.getenv('PRODUCTION_DATABASE_URL')
     engine = sqlalchemy.create_engine(database_url)
-    if city_name == '':
+    if city_name == '' and state_name == '':
+        query = f'''
+                SELECT Cities.city_name, STATES.state_name, Cities.latitude, Cities.longitude
+                FROM CITIES
+                LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
+                '''
+    elif city_name == '':
         query = f'''
                 SELECT Cities.city_name, STATES.state_name, Cities.latitude, Cities.longitude
                 FROM CITIES
