@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, Depends
 import sqlalchemy
 import json
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -78,5 +79,47 @@ async def state_list():
     for each in states:
         state_list.append(({'state_name':f'{each[0].strip()}', 'state_abbreviation':f'{each[1].strip()}'}))
     to_return = json.dumps(state_list)
+    return to_return
+
+class LocationQuery(BaseModel):
+    city_name: str
+    state_name: str
+
+@router.post('/location')
+async def location(locationquery: LocationQuery):
+    city_name = locationquery.city_name
+    state_name = locationquery.state_name
+    load_dotenv()
+    database_url = os.getenv('DEVELOPMENT_DATABASE_URL')
+    engine = sqlalchemy.create_engine(database_url)
+    if city_name == '':
+        query = f'''
+                SELECT Cities.city_name, STATES.state_name, Cities.latitude, Cities.longitude
+                FROM CITIES
+                LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
+                Where STATES.state_name = \'{state_name}\'
+                '''
+    elif state_name == '':
+        query = f'''
+                SELECT Cities.city_name, STATES.state_name, Cities.latitude, Cities.longitude
+                FROM CITIES
+                LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
+                Where cities.city_name = \'{city_name}\'
+                '''
+    else:
+        query = f'''
+                 SELECT Cities.city_name, STATES.state_name, Cities.latitude, Cities.longitude
+                FROM CITIES
+                LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
+                Where cities.city_name = \'{city_name}\' and states.state_name = \'{state_name}\'
+                '''
+    query_result = engine.execute(query)
+    location_list = []
+    for each in query_result:
+        location_list.append({'city_name':f'{each[0].strip()}',
+        'state_name': f'{each[1].strip()}',
+        'latitude': f'{each[2]}',
+        'longitude': f'{each[3]}'})
+    to_return = json.dumps(location_list)
     return to_return
 
