@@ -45,6 +45,7 @@ async def get_url(connection=Depends(get_db)):
 async def city_list():
     '''
     Returns a list of all cities that are in the database
+    returns city_name and state_name
     '''
     load_dotenv()
     database_url = os.getenv('DEVELOPMENT_DATABASE_URL')
@@ -58,5 +59,24 @@ async def city_list():
     for each in cities:
         city_list.append({'city_name':f'{each[0].strip()}', 'state_name':f'{each[1].strip()}'})
     to_return = json.dumps(city_list)
+    return to_return
+
+@router.get('/state_list')
+async def state_list():
+    '''
+    Returns a list of all states that are in the database
+    returns state_name and state_abbreviation
+    '''
+    load_dotenv()
+    database_url = os.getenv('DEVELOPMENT_DATABASE_URL')
+    query = '''SELECT state_name, state_abbreviation
+                FROM STATES
+            '''
+    engine = sqlalchemy.create_engine(database_url)
+    states = engine.execute(query)
+    state_list = []
+    for each in states:
+        state_list.append(({'state_name':f'{each[0].strip()}', 'state_abbreviation':f'{each[1].strip()}'}))
+    to_return = json.dumps(state_list)
     return to_return
 
