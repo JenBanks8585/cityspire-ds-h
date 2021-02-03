@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from app import db, ml, viz
+from app import db, ml, viz, external
 
 description = """
 Edit your app's title and description. See [https://fastapi.tiangolo.com/tutorial/metadata/](https://fastapi.tiangolo.com/tutorial/metadata/)
@@ -24,6 +24,7 @@ app = FastAPI(
 app.include_router(db.router, tags=['Database'])
 app.include_router(ml.router, tags=['Machine Learning'])
 app.include_router(viz.router, tags=['Visualization'])
+app.include_router(external.router, tags=['External Resources'])
 
 app.add_middleware(
     CORSMiddleware,
