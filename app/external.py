@@ -58,15 +58,11 @@ async def streamlined_rent_list(api_key=config.settings.api_key,
       lat=response[i]['address']['lat']
       lon=response[i]['address']['lon']
       photos=response[i]['photos']
-      address=line +" "+  city + " "+ state
-      walk_score=just_walk_score(address, lat, lon)
-      element={'address': address, 
-                'lat': lat, 
+      element={ 'lat': lat, 
                 'lon': lon, 
                 'city':city, 
                 'state':state, 
-                'photos': photos,  
-                'walk_score': walk_score}
+                'photos': photos}                  
 
       rental_list.append(element)
 
