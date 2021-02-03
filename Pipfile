@@ -9,11 +9,13 @@ pytest = "*"
 
 [packages]
 fastapi = "*"
-uvicorn = {extras = ["standard"], version = "*"}
+uvicorn = {extras = ["standard"],version = "*"}
 sqlalchemy = "*"
 psycopg2-binary = "*"
 python-dotenv = "*"
 pandas = "*"
+walkscore-api = "*"
+requests = "*"
 
 [requires]
 python_version = "3"
