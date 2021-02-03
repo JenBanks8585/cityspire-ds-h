@@ -2,6 +2,7 @@
     "_meta": {
         "hash": {
             "sha256": "aa89e826526f9ce2eb597cec4032a9b41c97d8da51a4a07fc0c5d2e99bbfbea1"
+
         },
         "pipfile-spec": 6,
         "requires": {
@@ -81,6 +82,7 @@
         },
         "importlib-metadata": {
             "hashes": [
+
                 "sha256:ace61d5fc652dc280e7b6b4ff732a9c2d40db2c0f92bc6cb74e07b73d53a1771",
                 "sha256:fa5daa4477a7414ae34e95942e4dd07f62adf589143c875c133c1e53c4eff38d"
             ],
@@ -121,6 +123,7 @@
                 "sha256:eee454d3aa3955d0c0069a0f265fea47f1e1384c35a110a95efed358eb6e1562",
                 "sha256:f1e9424e9aa3834ea27cc12f9c6ea8ace5da18ee60a720bb3a85b2f733f41782"
             ],
+
             "version": "==1.20.0"
         },
         "pandas": {
@@ -212,6 +215,7 @@
                 "sha256:f6864844b039805add62ebe8a8c676286340ba0c6d043ae5dea24114b82a319e",
                 "sha256:ffd180ebd5dd2a9ac0da4e8b995c9c99e7c74c31f985ba090ee01d681b1c4b95"
             ],
+
             "version": "==1.7.3"
         },
         "pyrsistent": {
@@ -475,7 +479,7 @@
                 "sha256:6123ddc1052673e52bab52cdc955bcb57a015264a1c57d37bea2f6b817af0125",
                 "sha256:98b3170739e5e83dd9dc19633f074727ad848cbedb6026708c8ac2d3b697a433"
             ],
-            "version": "==3.3.0"
+
         },
         "cffi": {
             "hashes": [
@@ -603,6 +607,7 @@
                 "sha256:03e47ad063331dd6a3f04a43eddca8a966a26ba0c5b7207a9a9e4e08f1b29419",
                 "sha256:a6d58433de0ae800347cab1fa3043cebbabe8baa9d29e668f1c768cb87a333c6"
             ],
+
             "version": "==2.11.3"
         },
         "jsonschema": {
@@ -640,6 +645,7 @@
                 "sha256:79025cb3225efcd36847d0840f3fc672c0abd7afd0de83ba8a1d3837619122b4",
                 "sha256:8c6c0cac5c1b563622ad49321d5ec47017bd18b94facb381c6973a0486395f8e"
             ],
+
             "version": "==4.7.1"
         },
         "jupyterlab-pygments": {
@@ -761,6 +767,7 @@
                 "sha256:5b327ac1320dc863dca72f4514ecc086f31186744b84a230374cc1fd776feae5",
                 "sha256:67714da7f7bc052e064859c05c595155bd1ee9f69f76557e21f051443c20947a"
             ],
+
             "version": "==20.9"
         },
         "pandocfilters": {
@@ -920,6 +927,7 @@
                 "sha256:f3ad3f77ed6a3cf31f61170fc1733afd83a4cf8e02edde0762d4e630bce2a97e",
                 "sha256:ff236d8653f8bb74198223c7af77b9378714f411d6d95255d97c2d69bf991b20"
             ],
+
             "version": "==22.0.2"
         },
         "qtconsole": {
