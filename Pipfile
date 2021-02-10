@@ -14,10 +14,8 @@ sqlalchemy = "*"
 psycopg2-binary = "*"
 python-dotenv = "*"
 pandas = "*"
-
 walkscore-api = "*"
 requests = "*"
-
 pydantic = "*"
 
 

@@ -3,20 +3,26 @@
 import os
 import requests
 
+import json
+import sqlalchemy
+import pandas as pd 
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, SecretStr
 from walkscore import WalkScoreAPI
 
 from app import config
+from app.pollution import *
 
 
 load_dotenv()
 
 router = APIRouter()
 
+
 headers={'x-rapidapi-key': os.getenv('api_key'),
             'x-rapidapi-host': os.getenv('host')}
+
 
 
 @router.get('/streamlined_rent_list')
@@ -49,6 +55,8 @@ async def streamlined_rent_list(api_key=config.settings.api_key,
 
     response_for_rent=requests.request("GET", url, params=querystring, headers=headers,)
     response = response_for_rent.json()['properties']
+    pollution_res = pollution(city)
+
 
     rental_list=[]
     for i in range(limit):
@@ -62,12 +70,14 @@ async def streamlined_rent_list(api_key=config.settings.api_key,
                 'lon': lon, 
                 'city':city, 
                 'state':state, 
-                'photos': photos}                  
+                'photos': photos,
+                'pollution': pollution_res}
+                                 
 
       rental_list.append(element)
 
     return rental_list
-  
+
 
 @router.get('/for_rent_list')
 async def for_rent_list(api_key=config.settings.api_key, 
@@ -146,6 +156,26 @@ async def for_sale_list(api_key=config.settings.api_key,
     return response_for_sale.json()['properties']
 
 
+@router.get('/walk_score')
+async def get_walk_score(address: str = "7 New Port Beach, Louisiana",
+    lat: float = 39.5984,
+    lon: float = -74.2151):
+
+    walk_api = WalkScoreAPI(api_key= os.getenv('walk_api'))
+
+    result = walk_api.get_score(longitude = lon, 
+            latitude = lat,
+            address = address)
+    
+    message = what_message(result.walk_score)
+
+    response = {"walk_score": result.walk_score, 
+                "walk_message":message, 
+                "transit_score": result.transit_score, 
+                "bike_score": result.bike_score}
+    return response
+
+
 def what_message(score):
     if 90 <= score <= 100:
         return "daily errands do not require a car"
@@ -179,21 +209,17 @@ def just_walk_score(address: str = "7 New Port Beach, Louisiana",
     return response
 
 
-@router.get('/walk_score')
-async def get_walk_score(address: str = "7 New Port Beach, Louisiana",
-    lat: float = 39.5984,
-    lon: float = -74.2151):
 
-    walk_api = WalkScoreAPI(api_key= os.getenv('walk_api'))
 
-    result = walk_api.get_score(longitude = lon, 
-            latitude = lat,
-            address = address)
-    
-    message = what_message(result.walk_score)
 
-    response = {"walk_score": result.walk_score, 
-                "walk_message":message, 
-                "transit_score": result.transit_score, 
-                "bike_score": result.bike_score}
-    return response
+url =  os.getenv('zip_forecast')
+
+rental_forecast_zip = pd.read_csv(url, index_col=[0])
+rental_forecast_zip['zip'] = rental_forecast_zip['zip'].apply(lambda x: str(x).zfill(5))
+
+@router.get('/rent_forecast')
+async def give_forecast(zip: str = '01852'):
+    if zip in list(rental_forecast_zip['zip']):
+        forecast = rental_forecast_zip.loc[rental_forecast_zip['zip']==zip, 'rent_forecast'].item()
+        return forecast 
+    return "No forecast for this location"
