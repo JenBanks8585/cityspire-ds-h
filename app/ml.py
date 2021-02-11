@@ -14,38 +14,44 @@ router = APIRouter()
 
 class RentForecast(BaseModel):
     city_name: str   
-    state_name: str
+    state_abbrev: str
 
 @router.post('/rentforecast_cityname')
-async def forecast_list(rentforecast:RentForecast):
+async def give_forecast_by_cityname(rentforecast:RentForecast):
     """
     Parameters: 
-        city_name: str
-        
+        city_name: str  Capital first letter    
+        state_abbrev: str Two-letter capitalized abbrevation of state  
     Returns: dict
         Rent forecast in the next 5 months with low and high range
     """
-    city_name = rentforecast.city_name    
+
+    city_name = rentforecast.city_name
+    state_abbrev = rentforecast.state_abbrev
+    
     load_dotenv()
     database_url = os.getenv('PRODUCTION_DATABASE_URL')
     engine = sqlalchemy.create_engine(database_url)
-
-    query = '''SELECT RTRIM(CITIES.city_name) as city_name, RENTAL_FORECAST.rental_forecast
-    FROM CITIES
-    INNER JOIN RENTAL_FORECAST 
-    ON CITIES.city_id=RENTAL_FORECAST.city_id  
-    '''
+    query = '''SELECT RTRIM(CITIES.city_name) as city_name, 
+                      RENTAL_FORECAST.rental_forecast,
+                      RTRIM(STATES.state_abbreviation) as state_name    
+                FROM CITIES
+                INNER JOIN RENTAL_FORECAST 
+                    ON CITIES.city_id=RENTAL_FORECAST.city_id  
+                INNER JOIN STATES
+                    ON CITIES.state_id = STATES.state_id
+                '''
     query_result = engine.execute(query)
     forecasts = query_result.fetchall()
-
     for i in range(len(forecasts)):
-        if forecasts[i][0]== city_name:
-
+        if forecasts[i][0]== city_name and forecasts[i][2]==state_abbrev:
             return forecasts[i][1]
+
+    return 'Data for this location is not available'
     
 
 @router.get('/rent_forecast_zip')
-async def give_forecast(zip: str = '01852'):
+async def give_forecast_by_zip(zip: str = '01852'):
 
     """
     Parameters: 
