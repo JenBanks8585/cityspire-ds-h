@@ -17,10 +17,15 @@ class RentForecast(BaseModel):
 
 @router.post('/rentforecast_cityname')
 async def forecast_list(rentforecast:RentForecast):
+    """
+    Parameters: 
+        city_name: str
+        
+    Returns: dict
+        Rent forecast in the next 5 months with low and high range
+    """
     city_name = rentforecast.city_name    
-    
     load_dotenv()
-
     database_url = os.getenv('PRODUCTION_DATABASE_URL')
     engine = sqlalchemy.create_engine(database_url)
 

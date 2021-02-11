@@ -36,13 +36,13 @@ async def streamlined_rent_list(api_key=config.settings.api_key,
     Parameters:
         api_key
         city: str 
-        state: str
+        state: str Two-letter abbreviation
         prop_type: str ('condo', 'single_family', 'multi_family')
         limit: int number of results to populate
 
     Returns: dict
         Chosen information of the requested parameters such 
-        as addresses, state, ciy, lat, lon, photos and walk score
+        as addresses, state, ciy, lat, lon, photos, walk score, pollution info
     """
     
     url=os.getenv('url_list_for_rent')
@@ -161,6 +161,15 @@ async def get_walk_score(address: str = "7 New Port Beach, Louisiana",
     lat: float = 39.5984,
     lon: float = -74.2151):
 
+    """
+    Parameters: 
+        address: str
+        lat: float
+        lon: float number of results to populate
+    Returns: dict
+        Returns walkscore, description, transit score and bike score
+    """
+
     walk_api = WalkScoreAPI(api_key= os.getenv('walk_api'))
 
     result = walk_api.get_score(longitude = lon, 
@@ -217,6 +226,14 @@ rental_forecast_zip['zip'] = rental_forecast_zip['zip'].apply(lambda x: str(x).z
 
 @router.get('/rent_forecast_zip')
 async def give_forecast(zip: str = '01852'):
+
+    """
+    Parameters: 
+        zip: str        
+    Returns: dict
+        Rent forecast in the next 5 months with low and high range
+    """
+
     if zip in list(rental_forecast_zip['zip']):
         forecast = rental_forecast_zip.loc[rental_forecast_zip['zip']==zip, 'forecast'].item()
         return forecast 
