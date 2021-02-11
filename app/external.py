@@ -209,17 +209,15 @@ def just_walk_score(address: str = "7 New Port Beach, Louisiana",
     return response
 
 
-
-
-
 url =  os.getenv('zip_forecast')
 
 rental_forecast_zip = pd.read_csv(url, index_col=[0])
 rental_forecast_zip['zip'] = rental_forecast_zip['zip'].apply(lambda x: str(x).zfill(5))
 
-@router.get('/rent_forecast')
+
+@router.get('/rent_forecast_zip')
 async def give_forecast(zip: str = '01852'):
     if zip in list(rental_forecast_zip['zip']):
-        forecast = rental_forecast_zip.loc[rental_forecast_zip['zip']==zip, 'rent_forecast'].item()
+        forecast = rental_forecast_zip.loc[rental_forecast_zip['zip']==zip, 'forecast'].item()
         return forecast 
     return "No forecast for this location"
