@@ -12,7 +12,7 @@ from pydantic import BaseModel, SecretStr
 from walkscore import WalkScoreAPI
 
 from app import config
-from app.pollution import *
+from app.helper import *
 
 
 load_dotenv()
@@ -156,6 +156,7 @@ async def for_sale_list(api_key=config.settings.api_key,
     return response_for_sale.json()['properties']
 
 
+
 @router.get('/walk_score')
 async def get_walk_score(address: str = "7 New Port Beach, Louisiana",
     lat: float = 39.5984,
@@ -185,56 +186,12 @@ async def get_walk_score(address: str = "7 New Port Beach, Louisiana",
     return response
 
 
-def what_message(score):
-    if 90 <= score <= 100:
-        return "daily errands do not require a car"
-    elif 70 <= score <= 89:
-        return "most errands can be accomplished on foot"
-    elif 50 <= score <= 69:
-        return "some errands can be accomplished on foot"
-    elif 25 <= score <= 49:
-        return "most errands require a car"
-    else:
-        return " almost all errands require a car"
 
-
-def just_walk_score(address: str = "7 New Port Beach, Louisiana",
-    lat: float = 39.5984,
-    lon: float = -74.2151
-    ):
-
-    walk_api = WalkScoreAPI(api_key= os.getenv('walk_api'))
-
-    result = walk_api.get_score(longitude = lon, 
-            latitude = lat,
-            address = address)
+@router.get('/pollution')
+async def get_pollution(city:str, state: str):
+    """ Input: City, 2 letter abbreviation for state
+    Returns a list containing WalkScore, BusScore, and BikeScore in that order
+    """    
+    response = pollution(city)
     
-    message = what_message(result.walk_score)
-
-    response = {"walk_score": result.walk_score, 
-                "walk_message":message, 
-                "transit_score": result.transit_score, 
-                "bike_score": result.bike_score}
     return response
-
-
-url =  os.getenv('zip_forecast')
-
-rental_forecast_zip = pd.read_csv(url, index_col=[0])
-rental_forecast_zip['zip'] = rental_forecast_zip['zip'].apply(lambda x: str(x).zfill(5))
-
-
-@router.get('/rent_forecast_zip')
-async def give_forecast(zip: str = '01852'):
-
-    """
-    Parameters: 
-        zip: str        
-    Returns: dict
-        Rent forecast in the next 5 months with low and high range
-    """
-
-    if zip in list(rental_forecast_zip['zip']):
-        forecast = rental_forecast_zip.loc[rental_forecast_zip['zip']==zip, 'forecast'].item()
-        return forecast 
-    return "No forecast for this location"
