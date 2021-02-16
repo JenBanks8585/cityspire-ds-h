@@ -15,7 +15,7 @@ class RentVisual(BaseModel):
 
 
 @router.post('/rentforecast_visualize')
-async def plotme(rentvisual: RentVisual):
+async def plotrentforecast(rentvisual: RentVisual):
     """
     Parameters: 
         zip code: int      

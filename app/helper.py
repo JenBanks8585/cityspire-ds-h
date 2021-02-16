@@ -7,6 +7,7 @@ import json
 import sqlalchemy
 import pandas as pd 
 from dotenv import load_dotenv
+import plotly.graph_objects as go
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, SecretStr
 from fastapi import APIRouter
@@ -112,34 +113,34 @@ def just_walk_score(address: str = "7 New Port Beach, Louisiana",
 
 
 def load_data():
-    url_forecast = 'https://raw.githubusercontent.com/JenBanks8585/Randomdata/main/data/Realty/forecast_plot.csv'
-    url_training = "https://raw.githubusercontent.com/JenBanks8585/Randomdata/main/data/Realty/Zip_ZORI_AllHomesPlusMultifamily_SSA%20(1).csv"
-    # Forecast data
-    df = pd.read_csv(url_forecast, index_col = [0])
-    df.columns = ['zip', 'city', 'state', 'level', '2021-01-01', '2021-02-01', '2021-03-01', '2021-04-01', '2021-05-01']
-    # Convert to long format
-    df_melt = pd.melt(df, id_vars=['zip', 'city', 'state', 'level'])
-    # Rename columns
-    df_melt.columns = ['zip', 'city', 'state', 'level', 'month','rent_forecast']
-    # Cast date to datetime object
-    df_melt['month']= pd.to_datetime(df_melt['month'], infer_datetime_format=True)
-
-
-    # Training data
-    df_orig = pd.read_csv(url_training, parse_dates= True)
-    df_orig = df_orig.drop(columns =['SizeRank'], axis = 0)
-    # labels
-    df_1= df_orig.iloc[:,1:3]
-    # Grabbing data from 2018 onwards
-    df_2= df_orig.iloc[:,60:]
-    # Concatenate
-    df_me = pd.concat([df_1, df_2], axis = 1)
-    # Transform to long format
-    df_mew = pd.melt(df_me, id_vars=['RegionName', 'MsaName'])
-    # Grab columns
-    df_mew.columns =['zip', 'cityname', 'date', 'rent_forecast']
-    # Cast date to datetime object
-    df_mew['date']= pd.to_datetime(df_mew['date'])
-
-    return df_melt, df_me, df_mew
+  """
+  Helper function that loads data for processing for rent forecast visualization
+  """
+  url_forecast = 'https://raw.githubusercontent.com/JenBanks8585/Randomdata/main/data/Realty/forecast_plot.csv'
+  url_training = "https://raw.githubusercontent.com/JenBanks8585/Randomdata/main/data/Realty/Zip_ZORI_AllHomesPlusMultifamily_SSA%20(1).csv"
+  # Forecast data
+  df = pd.read_csv(url_forecast, index_col = [0])
+  df.columns = ['zip', 'city', 'state', 'level', '2021-01-01', '2021-02-01', '2021-03-01', '2021-04-01', '2021-05-01']
+  # Convert to long format
+  df_melt = pd.melt(df, id_vars=['zip', 'city', 'state', 'level'])
+  # Rename columns
+  df_melt.columns = ['zip', 'city', 'state', 'level', 'month','rent_forecast']
+  # Cast date to datetime object
+  df_melt['month']= pd.to_datetime(df_melt['month'], infer_datetime_format=True)
+  # Training data
+  df_orig = pd.read_csv(url_training, parse_dates= True)
+  df_orig = df_orig.drop(columns =['SizeRank'], axis = 0)
+  # labels
+  df_1= df_orig.iloc[:,1:3]
+  # Grabbing data from 2018 onwards
+  df_2= df_orig.iloc[:,60:]
+  # Concatenate
+  df_me = pd.concat([df_1, df_2], axis = 1)
+  # Transform to long format
+  df_mew = pd.melt(df_me, id_vars=['RegionName', 'MsaName'])
+  # Grab columns
+  df_mew.columns =['zip', 'cityname', 'date', 'rent_forecast']
+  # Cast date to datetime object
+  df_mew['date']= pd.to_datetime(df_mew['date'])
+  return df_melt, df_me, df_mew
 
