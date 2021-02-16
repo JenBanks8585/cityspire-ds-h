@@ -72,7 +72,6 @@ async def plotrentforecast(rentvisual: RentVisual):
         fig.update_yaxes(automargin = True, gridcolor = "gray")
         fig.update_xaxes(automargin = True, gridcolor = "gray")
 
-        #return fig.show()
         return fig.to_json() 
 
     else:
