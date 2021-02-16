@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.helper import load_data
+from app.helper import load_data_rent_visual
 
 
 router = APIRouter()
@@ -24,9 +24,9 @@ async def plotrentforecast(rentvisual: RentVisual):
         JSON string for render with react-plotly.js
     """
 
-    df_melt = load_data()[0]
-    df_me = load_data()[1]
-    df_mew = load_data()[2]
+    df_melt = load_data_rent_visual()[0]
+    df_me = load_data_rent_visual()[1]
+    df_mew = load_data_rent_visual()[2]
 
     zips = list(df_me['RegionName'])
     zip = rentvisual.zip    

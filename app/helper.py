@@ -112,7 +112,7 @@ def just_walk_score(address: str = "7 New Port Beach, Louisiana",
     return response
 
 
-def load_data():
+def load_data_rent_visual():
   """
   Helper function that loads data for processing for rent forecast visualization
   """
