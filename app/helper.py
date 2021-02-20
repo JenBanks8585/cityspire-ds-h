@@ -144,8 +144,8 @@ def load_data_rent_visual():
   """
   Helper function that loads data for processing for rent forecast visualization
   """
-  url_forecast = 'https://raw.githubusercontent.com/JenBanks8585/Randomdata/main/data/Realty/forecast_plot.csv'
-  url_training = "https://raw.githubusercontent.com/JenBanks8585/Randomdata/main/data/Realty/Zip_ZORI_AllHomesPlusMultifamily_SSA%20(1).csv"
+  url_forecast=os.getenv("url_forecast")
+  url_training=os.getenv("url_training")
   # Forecast data
   df = pd.read_csv(url_forecast, index_col = [0])
   df.columns = ['zip', 'city', 'state', 'level', '2021-01-01', '2021-02-01', '2021-03-01', '2021-04-01', '2021-05-01']
@@ -196,8 +196,12 @@ def overall_rate(state:str):
   Returns:
     Overall rating that includes affordability, education, health, safety
   """
-  best_state_to_live =pd.read_csv("https://raw.githubusercontent.com/JenBanks8585/Randomdata/main/data/livabilityfle/best%20states%20to%20live%20in%20-%20Sheet1.csv")
-  state_abbrev = pd.read_csv('https://raw.githubusercontent.com/jasonong/List-of-US-States/master/states.csv')
+  url_best_state_to_live=os.getenv("url_best_state_to_live")
+  url_state_abbrev=os.getenv("url_state_abbrev")
+
+  best_state_to_live =pd.read_csv(url_best_state_to_live)
+  state_abbrev = pd.read_csv(url_state_abbrev)
+  
   best_state_with_abbrev = pd.merge(best_state_to_live,state_abbrev, on = 'State')
   states = list(best_state_with_abbrev['Abbreviation'])
   if state in states:
