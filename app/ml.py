@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, SecretStr
 import sqlalchemy
 import json
+from app.helper import get_city_id
 
 from dotenv import load_dotenv
 
@@ -67,3 +68,43 @@ async def give_forecast_by_zip(zip: str = '01852'):
         forecast = rental_forecast_zip.loc[rental_forecast_zip['zip']==zip, 'forecast'].item()
         return forecast 
     return "No forecast for this location"
+
+class LivabilityQuery(BaseModel):
+    city_name: str
+    state_abbreviation: str
+
+@router.post('/livability')
+async def livability(livabilityquery: LivabilityQuery):
+    city_name = livabilityquery.city_name
+    state_abbreviation = livabilityquery.state_abbreviation
+    city_id = get_city_id(city_name, state_abbreviation)
+    livability_dict = {}
+
+    # population
+    livability_dict['population'] = 50
+
+    # crime
+    livability_dict['crime'] = 50
+
+
+    # walk score
+    livability_dict['walk_score'] = 50
+
+    
+    # pollution
+    livability_dict['pollution'] = 50
+    
+
+    # computing livability
+    sum = 0
+    len = 0
+    for key, value in livability_dict.items():
+        sum += value
+        len += 1
+
+    livability = sum / len
+
+
+
+    to_return = {'livability': livability}
+    return json.dumps(to_return)

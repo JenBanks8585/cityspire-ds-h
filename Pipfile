@@ -17,10 +17,7 @@ pandas = "*"
 walkscore-api = "*"
 requests = "*"
 pydantic = "*"
-<<<<<<< HEAD
-=======
 plotly = "*"
->>>>>>> main
 
 [requires]
 python_version = "3"
