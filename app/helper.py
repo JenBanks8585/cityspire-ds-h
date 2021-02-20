@@ -138,7 +138,7 @@ def just_walk_score(city:str, state: str):
                 "transit_score": result.transit_score, 
                 "bike_score": result.bike_score}
     return response
-print(just_walk_score("Newnan", "GA"))
+
 
 def load_data_rent_visual():
   """
@@ -173,17 +173,35 @@ def load_data_rent_visual():
   return df_melt, df_me, df_mew
 
 def get_city_id(city_name, state_abbreviation):
-    load_dotenv()
-    database_url = os.getenv('PRODUCTION_DATABASE_URL')
-    engine = sqlalchemy.create_engine(database_url)
-    city_name = city_name.title()
-    state_abbreviation = state_abbreviation.upper()
-    query = f'''
-                 SELECT Cities.city_id
-                FROM CITIES
-                LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
-                Where cities.city_name = \'{city_name}\' and states.state_abbreviation = \'{state_abbreviation}\'
-                '''
-    query_result = engine.execute(query)
-    my_return = [each[0] for each in query_result]
-    return my_return[0]
+  load_dotenv()
+  database_url = os.getenv('PRODUCTION_DATABASE_URL')
+  engine = sqlalchemy.create_engine(database_url)
+  city_name = city_name.title()
+  state_abbreviation = state_abbreviation.upper()
+  query = f'''
+    SELECT Cities.city_id
+    FROM CITIES
+    LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
+    Where cities.city_name = \'{city_name}\' and states.state_abbreviation = \'{state_abbreviation}\'
+    '''
+  query_result = engine.execute(query)
+  my_return = [each[0] for each in query_result]
+  return my_return[0]
+
+
+def overall_rate(state:str):
+  """
+  Parameter:
+    state: Two-letter abbreviation of the state
+  Returns:
+    Overall rating that includes affordability, education, health, safety
+  """
+  best_state_to_live =pd.read_csv("https://raw.githubusercontent.com/JenBanks8585/Randomdata/main/data/livabilityfle/best%20states%20to%20live%20in%20-%20Sheet1.csv")
+  state_abbrev = pd.read_csv('https://raw.githubusercontent.com/jasonong/List-of-US-States/master/states.csv')
+  best_state_with_abbrev = pd.merge(best_state_to_live,state_abbrev, on = 'State')
+  states = list(best_state_with_abbrev['Abbreviation'])
+  if state in states:
+    score = best_state_with_abbrev.loc[best_state_with_abbrev['Abbreviation']==state, 'Total Score'].item()
+    return score
+  else:
+    return {'message': "No data for this location"}
