@@ -8,6 +8,7 @@ import sqlalchemy
 import pandas as pd 
 from dotenv import load_dotenv
 import plotly.graph_objects as go
+from walkscore import WalkScoreAPI
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, SecretStr
 from fastapi import APIRouter
@@ -78,6 +79,26 @@ def pollution(city:str):
     return response
 
 
+def get_aqi_rate(city:str, state:str):
+  """
+  Parameters: 
+  city: Name of city in US
+  state: Two-letter abbreviation of state
+  """
+  openweather_key =os.getenv("openweathermap_api")
+  
+  requ = requests.get(f"http://api.openweathermap.org/geo/1.0/direct?q={city},{state},USA&limit={1}&appid={openweather_key}")
+  lat= requ.json()[0]['lat']
+  lon= requ.json()[0]['lon']
+
+  req = requests.get(f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={openweather_key}")
+  aqi = req.json()['list'][0]['main']['aqi']
+  aqi_dict= {1:90, 2:70, 3:50, 4:30, 5:10}
+  aqi_value = aqi_dict[aqi]
+
+  return aqi_value
+
+
 
 def what_message(score):
     if 90 <= score <= 100:
@@ -92,16 +113,23 @@ def what_message(score):
         return " almost all errands require a car"
 
 
-def just_walk_score(address: str = "7 New Port Beach, Louisiana",
-    lat: float = 39.5984,
-    lon: float = -74.2151
-    ):
+def just_walk_score(city:str, state: str):
+    """
+    Parameters: 
+        city: string
+        state: 2-letter state Abbreviation
+    Returns: dict
+        Returns walkscore, description, transit score and bike score
+    """
+
+    openweather_key=os.getenv("openweathermap_api")
+    requ = requests.get(f"http://api.openweathermap.org/geo/1.0/direct?q={city},{state},USA&limit={1}&appid={openweather_key}")
+    lat= requ.json()[0]['lat']
+    lon= requ.json()[0]['lon']
 
     walk_api = WalkScoreAPI(api_key= os.getenv('walk_api'))
-
     result = walk_api.get_score(longitude = lon, 
-            latitude = lat,
-            address = address)
+            latitude = lat)
     
     message = what_message(result.walk_score)
 
@@ -110,7 +138,7 @@ def just_walk_score(address: str = "7 New Port Beach, Louisiana",
                 "transit_score": result.transit_score, 
                 "bike_score": result.bike_score}
     return response
-
+print(just_walk_score("Newnan", "GA"))
 
 def load_data_rent_visual():
   """

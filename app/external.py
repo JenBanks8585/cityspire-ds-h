@@ -158,31 +158,17 @@ async def for_sale_list(api_key=config.settings.api_key,
 
 
 @router.get('/walk_score')
-async def get_walk_score(address: str = "7 New Port Beach, Louisiana",
-    lat: float = 39.5984,
-    lon: float = -74.2151):
-
+async def get_walk_score(city:str, state: str):
     """
     Parameters: 
-        address: str
-        lat: float
-        lon: float number of results to populate
+        city: string
+        state: 2-letter state Abbreviation
     Returns: dict
         Returns walkscore, description, transit score and bike score
     """
 
-    walk_api = WalkScoreAPI(api_key= os.getenv('walk_api'))
+    response = just_walk_score(city, state)
 
-    result = walk_api.get_score(longitude = lon, 
-            latitude = lat,
-            address = address)
-    
-    message = what_message(result.walk_score)
-
-    response = {"walk_score": result.walk_score, 
-                "walk_message":message, 
-                "transit_score": result.transit_score, 
-                "bike_score": result.bike_score}
     return response
 
 
