@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, SecretStr
 import sqlalchemy
 import json
-from app.helper import get_city_id, just_walk_score, get_aqi_rate, overall_rate
+from app.helper import get_city_id, just_walk_score, get_aqi_rate, overall_rate, housing_affordability_rate
 
 from dotenv import load_dotenv
 
@@ -97,7 +97,11 @@ async def livability(livabilityquery: LivabilityQuery):
 
     # computing affordability, education, safety
     livability_dict['overall'] = overall_rate(state_abbreviation)
-    
+
+
+    # computing affordability, education, safety
+    livability_dict['housing_affordability_rate'] = housing_affordability_rate(state_abbreviation)
+       
 
     # computing livability
     sum = 0

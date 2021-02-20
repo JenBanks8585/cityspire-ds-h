@@ -201,7 +201,7 @@ def overall_rate(state:str):
 
   best_state_to_live =pd.read_csv(url_best_state_to_live)
   state_abbrev = pd.read_csv(url_state_abbrev)
-  
+
   best_state_with_abbrev = pd.merge(best_state_to_live,state_abbrev, on = 'State')
   states = list(best_state_with_abbrev['Abbreviation'])
   if state in states:
@@ -209,3 +209,19 @@ def overall_rate(state:str):
     return score
   else:
     return {'message': "No data for this location"}
+
+
+def housing_affordability_rate(state):
+  """
+  Parameter:
+    state: Two-letter abbreviation of the state
+  Returns:
+    Housing affordability rate by state
+  """
+  url_housing_affordability=os.getenv("url_housing_affordability")
+  housing_affordability = pd.read_csv(url_housing_affordability)
+  housing_affordability['State'] = housing_affordability['Metro Area*'].apply(lambda x: x.split(",")[-1].strip())
+  rate_by_state = housing_affordability.loc[housing_affordability['State']==state, "2019 Q3"].max()
+  highest= housing_affordability["2019 Q3"].max()
+  score = 100*(1.5-(rate_by_state/highest))
+  return score
