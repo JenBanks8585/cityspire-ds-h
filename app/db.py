@@ -204,3 +204,26 @@ async def crime_data(crimequery: CrimeQuery):
 
     to_return = json.dumps({'raw': raw_dict, 'per_capita': per_capita_dict})
     return to_return
+
+class PopulationQuery(BaseModel):
+    city_name: str
+    state_abbreviation: str
+
+@router.post('/population_data')
+async def crime_data(populationquery: PopulationQuery):
+    city_name = populationquery.city_name
+    state_abbreviation = populationquery.state_abbreviation
+    city_id = get_city_id(city_name, state_abbreviation)
+
+    load_dotenv()
+    DATABASE_URL = os.getenv('PRODUCTION_DATABASE_URL')
+
+    engine = sqlalchemy.create_engine(DATABASE_URL)
+    query = f'''
+                SELECT population
+                FROM city_population
+                WHERE city_id = \'{city_id}\' and year = (SELECT max(year) From city_population)
+                '''
+    query_result = engine.execute(query)
+    my_return = [each[0] for each in query_result]
+    return json.dumps({'population': my_return[0]})
