@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends
 import sqlalchemy
 import json
 from pydantic import BaseModel
+import pandas as pd
 
 router = APIRouter()
 
@@ -127,4 +128,79 @@ async def location(locationquery: LocationQuery):
         'latitude': f'{each[2]}',
         'longitude': f'{each[3]}'})
     to_return = json.dumps(location_list)
+    return to_return
+
+
+def get_city_id(city_name, state_abbreviation):
+    load_dotenv()
+    database_url = os.getenv('PRODUCTION_DATABASE_URL')
+    engine = sqlalchemy.create_engine(database_url)
+    city_name = city_name.title()
+    state_abbreviation = state_abbreviation.upper()
+    query = f'''
+                 SELECT Cities.city_id
+                FROM CITIES
+                LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
+                Where cities.city_name = \'{city_name}\' and states.state_abbreviation = \'{state_abbreviation}\'
+                '''
+    query_result = engine.execute(query)
+    my_return = [each[0] for each in query_result]
+    return my_return[0]
+
+class CrimeQuery(BaseModel):
+    city_name: str
+    state_abbreviation: str
+
+@router.post('/crime_data')
+async def crime_data(crimequery: CrimeQuery):
+    city_name = crimequery.city_name
+    state_abbreviation = crimequery.state_abbreviation
+    city_id = get_city_id(city_name, state_abbreviation)
+
+    load_dotenv()
+    DATABASE_URL = os.getenv('PRODUCTION_DATABASE_URL')
+    
+    crime_features = ['violent_crime', 'murder_and_nonnegligent_homicide',
+                'rape', 'robbery', 'aggravated_assault', 'property_crime', 'burglary',
+                'larceny_theft', 'motor_vehicle_theft', 'arson', 'total']
+
+    # raw data
+    query = f'''
+                 SELECT year, RTRIM(type) as type, value
+                FROM city_crime_data_raw
+                WHERE city_id = \'{city_id}\'
+                '''
+    raw = pd.read_sql(query, DATABASE_URL)
+    
+    raw_dict = {'year':raw['year'].max()}
+    for each in crime_features:
+        raw_dict[each] = raw[(raw['year'] == raw['year'].max()) & (raw['type'] == f'{each}')]['value']
+        
+        if len(raw_dict[each]) == 1:
+            raw_dict[each] = raw_dict[each].iloc[0]
+        else:
+            raw_dict[each] = 'n/a'
+    for key, value in raw_dict.items():
+        raw_dict[key] = int(raw_dict[key])
+
+    # per_capita data
+    query = f'''
+                 SELECT year, RTRIM(type) as type, value
+                FROM city_crime_data_per_capita
+                WHERE city_id = \'{city_id}\'
+                '''
+    per_capita = pd.read_sql(query, DATABASE_URL)
+
+    per_capita_dict = {'year':per_capita['year'].max()}
+    for each in crime_features:
+        per_capita_dict[each] = per_capita[(per_capita['year'] == per_capita['year'].max()) & (per_capita['type'] == f'{each}')]['value']
+        
+        if len(per_capita_dict[each]) == 1:
+            per_capita_dict[each] = per_capita_dict[each].iloc[0]
+        else:
+            per_capita_dict[each] = 'n/a'
+    for key, value in per_capita_dict.items():
+        per_capita_dict[key] = float(per_capita_dict[key])
+
+    to_return = json.dumps({'raw': raw_dict, 'per_capita': per_capita_dict})
     return to_return
