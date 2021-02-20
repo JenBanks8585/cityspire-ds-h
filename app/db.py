@@ -8,6 +8,7 @@ import sqlalchemy
 import json
 from pydantic import BaseModel
 import pandas as pd
+from app.helper import get_city_id
 
 router = APIRouter()
 
@@ -131,21 +132,7 @@ async def location(locationquery: LocationQuery):
     return to_return
 
 
-def get_city_id(city_name, state_abbreviation):
-    load_dotenv()
-    database_url = os.getenv('PRODUCTION_DATABASE_URL')
-    engine = sqlalchemy.create_engine(database_url)
-    city_name = city_name.title()
-    state_abbreviation = state_abbreviation.upper()
-    query = f'''
-                 SELECT Cities.city_id
-                FROM CITIES
-                LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
-                Where cities.city_name = \'{city_name}\' and states.state_abbreviation = \'{state_abbreviation}\'
-                '''
-    query_result = engine.execute(query)
-    my_return = [each[0] for each in query_result]
-    return my_return[0]
+
 
 class CrimeQuery(BaseModel):
     city_name: str
