@@ -69,6 +69,7 @@ async def give_forecast_by_zip(zip: str = '01852'):
         return forecast 
     return "No forecast for this location"
 
+
 class LivabilityQuery(BaseModel):
     city_name: str
     state_abbreviation: str
@@ -86,22 +87,17 @@ async def livability(livabilityquery: LivabilityQuery):
     # crime
     livability_dict['crime'] = 50
 
-
     # walk score
     livability_dict['walk_score']=just_walk_score(city_name, state_abbreviation)['walk_score'] 
-
     
     # pollution
     livability_dict['pollution'] = get_aqi_rate(city_name, state_abbreviation)
 
-
     # computing affordability, education, safety
-    livability_dict['overall'] = overall_rate(state_abbreviation)
+    livability_dict['educ_safety_community'] = overall_rate(state_abbreviation)
 
-
-    # computing affordability, education, safety
-    livability_dict['housing_affordability_rate'] = housing_affordability_rate(state_abbreviation)
-       
+    # computing housing affordability
+    livability_dict['housing_affordability_rate'] = housing_affordability_rate(state_abbreviation)       
 
     # computing livability
     sum = 0
@@ -111,7 +107,6 @@ async def livability(livabilityquery: LivabilityQuery):
         len += 1
 
     livability = sum / len
-
 
     to_return = {'livability': livability}
     return json.dumps(to_return)
