@@ -189,7 +189,7 @@ def get_city_id(city_name, state_abbreviation):
   return my_return[0]
 
 
-def overall_rate(state:str):
+def get_community_rate(state:str):
   """
   Parameter:
     state: Two-letter abbreviation of the state
