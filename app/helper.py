@@ -8,6 +8,7 @@ import sqlalchemy
 import pandas as pd 
 from dotenv import load_dotenv
 import plotly.graph_objects as go
+from walkscore import WalkScoreAPI
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, SecretStr
 from fastapi import APIRouter
@@ -78,6 +79,26 @@ def pollution(city:str):
     return response
 
 
+def get_aqi_rate(city:str, state:str):
+  """
+  Parameters: 
+  city: Name of city in US
+  state: Two-letter abbreviation of state
+  """
+  openweather_key =os.getenv("openweathermap_api")
+  
+  requ = requests.get(f"http://api.openweathermap.org/geo/1.0/direct?q={city},{state},USA&limit={1}&appid={openweather_key}")
+  lat= requ.json()[0]['lat']
+  lon= requ.json()[0]['lon']
+
+  req = requests.get(f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={openweather_key}")
+  aqi = req.json()['list'][0]['main']['aqi']
+  aqi_dict= {1:90, 2:70, 3:50, 4:30, 5:10}
+  aqi_value = aqi_dict[aqi]
+
+  return aqi_value
+
+
 
 def what_message(score):
     if 90 <= score <= 100:
@@ -92,16 +113,23 @@ def what_message(score):
         return " almost all errands require a car"
 
 
-def just_walk_score(address: str = "7 New Port Beach, Louisiana",
-    lat: float = 39.5984,
-    lon: float = -74.2151
-    ):
+def just_walk_score(city:str, state: str):
+    """
+    Parameters: 
+        city: string
+        state: 2-letter state Abbreviation
+    Returns: dict
+        Returns walkscore, description, transit score and bike score
+    """
+
+    openweather_key=os.getenv("openweathermap_api")
+    requ = requests.get(f"http://api.openweathermap.org/geo/1.0/direct?q={city},{state},USA&limit={1}&appid={openweather_key}")
+    lat= requ.json()[0]['lat']
+    lon= requ.json()[0]['lon']
 
     walk_api = WalkScoreAPI(api_key= os.getenv('walk_api'))
-
     result = walk_api.get_score(longitude = lon, 
-            latitude = lat,
-            address = address)
+            latitude = lat)
     
     message = what_message(result.walk_score)
 
@@ -116,8 +144,8 @@ def load_data_rent_visual():
   """
   Helper function that loads data for processing for rent forecast visualization
   """
-  url_forecast = 'https://raw.githubusercontent.com/JenBanks8585/Randomdata/main/data/Realty/forecast_plot.csv'
-  url_training = "https://raw.githubusercontent.com/JenBanks8585/Randomdata/main/data/Realty/Zip_ZORI_AllHomesPlusMultifamily_SSA%20(1).csv"
+  url_forecast=os.getenv("url_forecast")
+  url_training=os.getenv("url_training")
   # Forecast data
   df = pd.read_csv(url_forecast, index_col = [0])
   df.columns = ['zip', 'city', 'state', 'level', '2021-01-01', '2021-02-01', '2021-03-01', '2021-04-01', '2021-05-01']
@@ -145,17 +173,55 @@ def load_data_rent_visual():
   return df_melt, df_me, df_mew
 
 def get_city_id(city_name, state_abbreviation):
-    load_dotenv()
-    database_url = os.getenv('PRODUCTION_DATABASE_URL')
-    engine = sqlalchemy.create_engine(database_url)
-    city_name = city_name.title()
-    state_abbreviation = state_abbreviation.upper()
-    query = f'''
-                 SELECT Cities.city_id
-                FROM CITIES
-                LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
-                Where cities.city_name = \'{city_name}\' and states.state_abbreviation = \'{state_abbreviation}\'
-                '''
-    query_result = engine.execute(query)
-    my_return = [each[0] for each in query_result]
-    return my_return[0]
+  load_dotenv()
+  database_url = os.getenv('PRODUCTION_DATABASE_URL')
+  engine = sqlalchemy.create_engine(database_url)
+  city_name = city_name.title()
+  state_abbreviation = state_abbreviation.upper()
+  query = f'''
+    SELECT Cities.city_id
+    FROM CITIES
+    LEFT JOIN STATES ON CITIES.state_id=STATES.state_id
+    Where cities.city_name = \'{city_name}\' and states.state_abbreviation = \'{state_abbreviation}\'
+    '''
+  query_result = engine.execute(query)
+  my_return = [each[0] for each in query_result]
+  return my_return[0]
+
+
+def get_community_rate(state:str):
+  """
+  Parameter:
+    state: Two-letter abbreviation of the state
+  Returns:
+    Overall rating that includes affordability, education, health, safety
+  """
+  url_best_state_to_live=os.getenv("url_best_state_to_live")
+  url_state_abbrev=os.getenv("url_state_abbrev")
+
+  best_state_to_live =pd.read_csv(url_best_state_to_live)
+  state_abbrev = pd.read_csv(url_state_abbrev)
+
+  best_state_with_abbrev = pd.merge(best_state_to_live,state_abbrev, on = 'State')
+  states = list(best_state_with_abbrev['Abbreviation'])
+  if state in states:
+    score = best_state_with_abbrev.loc[best_state_with_abbrev['Abbreviation']==state, 'Total Score'].item()
+    return score
+  else:
+    return {'message': "No data for this location"}
+
+
+def housing_affordability_rate(state):
+  """
+  Parameter:
+    state: Two-letter abbreviation of the state
+  Returns:
+    Housing affordability rate by state
+  """
+  url_housing_affordability=os.getenv("url_housing_affordability")
+  housing_affordability = pd.read_csv(url_housing_affordability)
+  housing_affordability['State'] = housing_affordability['Metro Area*'].apply(lambda x: x.split(",")[-1].strip())
+  rate_by_state = housing_affordability.loc[housing_affordability['State']==state, "2019 Q3"].max()
+  highest= housing_affordability["2019 Q3"].max()
+  score = 100*(1.5-(rate_by_state/highest))
+  return score

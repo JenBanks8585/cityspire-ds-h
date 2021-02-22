@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, SecretStr
 import sqlalchemy
 import json
-from app.helper import get_city_id
+from app.helper import get_city_id, just_walk_score, get_aqi_rate, get_community_rate, housing_affordability_rate
 
 from dotenv import load_dotenv
 
@@ -48,7 +48,7 @@ async def give_forecast_by_cityname(rentforecast:RentForecast):
         if forecasts[i][0]== city_name and forecasts[i][2]==state_abbrev:
             return forecasts[i][1]
 
-    return 'Data for this location is not available'
+    return {"message":"No forecast for this location"}
     
 
 @router.get('/rent_forecast_zip')
@@ -67,7 +67,8 @@ async def give_forecast_by_zip(zip: str = '01852'):
     if zip in list(rental_forecast_zip['zip']):
         forecast = rental_forecast_zip.loc[rental_forecast_zip['zip']==zip, 'forecast'].item()
         return forecast 
-    return "No forecast for this location"
+    return {"message":"No forecast for this location"}
+
 
 class LivabilityQuery(BaseModel):
     city_name: str
@@ -86,14 +87,17 @@ async def livability(livabilityquery: LivabilityQuery):
     # crime
     livability_dict['crime'] = 50
 
-
     # walk score
-    livability_dict['walk_score'] = 50
-
+    livability_dict['walk_score']=just_walk_score(city_name, state_abbreviation)['walk_score'] 
     
     # pollution
-    livability_dict['pollution'] = 50
-    
+    livability_dict['pollution'] = get_aqi_rate(city_name, state_abbreviation)
+
+    # computing affordability, education, safety
+    livability_dict['educ_safety_community'] = get_community_rate(state_abbreviation)
+
+    # computing housing affordability
+    livability_dict['housing_affordability_rate'] = housing_affordability_rate(state_abbreviation)       
 
     # computing livability
     sum = 0
@@ -103,8 +107,6 @@ async def livability(livabilityquery: LivabilityQuery):
         len += 1
 
     livability = sum / len
-
-
 
     to_return = {'livability': livability}
     return json.dumps(to_return)
