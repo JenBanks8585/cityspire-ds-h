@@ -197,20 +197,23 @@ class PopulationQuery(BaseModel):
     state_abbreviation: str
 
 @router.post('/population_data')
-async def crime_data(populationquery: PopulationQuery):
-    city_name = populationquery.city_name
-    state_abbreviation = populationquery.state_abbreviation
-    city_id = get_city_id(city_name, state_abbreviation)
+async def population_data(populationquery: PopulationQuery):
+    try:
+        city_name = populationquery.city_name
+        state_abbreviation = populationquery.state_abbreviation
+        city_id = get_city_id(city_name, state_abbreviation)
 
-    load_dotenv()
-    DATABASE_URL = os.getenv('PRODUCTION_DATABASE_URL')
+        load_dotenv()
+        DATABASE_URL = os.getenv('PRODUCTION_DATABASE_URL')
 
-    engine = sqlalchemy.create_engine(DATABASE_URL)
-    query = f'''
+        engine = sqlalchemy.create_engine(DATABASE_URL)
+        query = f'''
                 SELECT population
                 FROM city_population
-                WHERE city_id = \'{city_id}\' and year = (SELECT max(year) From city_population)
+                WHERE city_id = \'{city_id}\' and year = (SELECT max(year) From city_population WHERE city_id = \'{city_id}\')
                 '''
-    query_result = engine.execute(query)
-    my_return = [each[0] for each in query_result]
-    return json.dumps({'population': my_return[0]})
+        query_result = engine.execute(query)
+        my_return = [each[0] for each in query_result]
+        return json.dumps({'population': my_return[0]})
+    except:
+        return json.dumps({'population': 'n/a'})
