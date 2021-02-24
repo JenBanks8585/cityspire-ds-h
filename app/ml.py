@@ -81,11 +81,73 @@ async def livability(livabilityquery: LivabilityQuery):
     city_id = get_city_id(city_name, state_abbreviation)
     livability_dict = {}
 
-    # population
-    livability_dict['population'] = 50
+    load_dotenv()
+    DATABASE_URL = os.getenv('PRODUCTION_DATABASE_URL')
+    engine = sqlalchemy.create_engine(DATABASE_URL)
 
+    # population
+    try:
+        query = f'''
+        SELECT population
+        FROM city_population
+        WHERE city_id = \'{city_id}\' and year = (SELECT max(year) From city_population WHERE city_id = \'{city_id}\')
+        '''
+        query_result = engine.execute(query)
+        my_return = [each[0] for each in query_result]
+        observed_population = my_return[0]
+    
+        query = f'''
+        SELECT max(population)
+        FROM city_population
+        '''
+        query_result = engine.execute(query)
+        my_return = [each[0] for each in query_result]
+        max_population = my_return[0]
+
+        query = f'''
+        SELECT min(population)
+        FROM city_population
+        '''
+        query_result = engine.execute(query)
+        my_return = [each[0] for each in query_result]
+        min_population = my_return[0]
+    
+        livability_dict['population'] = 100 * ((observed_population - min_population) / (max_population - min_population))
+    except:
+        pass
     # crime
-    livability_dict['crime'] = 50
+    
+    try:
+        query = f'''
+        SELECT value
+        FROM city_crime_data_per_capita
+        WHERE city_id = \'{city_id}\' and year = (SELECT max(year) From city_crime_data_per_capita WHERE city_id = \'{city_id}\') and type = \'total\'
+        '''
+        query_result = engine.execute(query)
+        my_return = [each[0] for each in query_result]
+        observed_crime = my_return[0]
+    
+        query = f'''
+        SELECT max(value)
+        FROM city_crime_data_per_capita
+        WHERE type = \'total\'
+        '''
+        query_result = engine.execute(query)
+        my_return = [each[0] for each in query_result]
+        max_crime = my_return[0]
+
+        query = f'''
+        SELECT min(value)
+        FROM city_crime_data_per_capita
+        WHERE type = \'total\'
+        '''
+        query_result = engine.execute(query)
+        my_return = [each[0] for each in query_result]
+        min_crime = my_return[0]
+    
+        livability_dict['crime'] = 100 * (1 - ((observed_crime - min_crime) / (max_crime - min_crime)))
+    except:
+        pass
 
     # walk score
     livability_dict['walk_score']=just_walk_score(city_name, state_abbreviation)['walk_score'] 
