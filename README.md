@@ -13,8 +13,15 @@
 * ## Database
 
  `/city_list` : Returns a list of all cities that are in the database returns city_name and state_name
+
  `/state_list`: Returns a list of all states that are in the database returns state_name and state_abbreviation
- `/location`: 
+
+ `/location`: Returns a list of json objects that match the search criteria. If city_name or state_name are left blank then it is likely there will be more than one result.
+
+ ```
+ "[{\"city_name\": \"Atlanta\", \"state_name\": \"Georgia\", \"latitude\": \"33.762909\", \"longitude\": \"-84.422675\"}]"
+ ```
+
  `/crime_data`: Returns a json format of different types of crimes and corresponding years and counts
 
  ```
